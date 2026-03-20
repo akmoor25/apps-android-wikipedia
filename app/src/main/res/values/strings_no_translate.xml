@@ -96,6 +96,8 @@
     <!-- Font family -->
     <string name="font_family_sans_serif">sans-serif</string>
     <string name="font_family_serif">serif</string>
+    <string name="font_family_custom">CustomFont</string>
+
 
     <!-- Tag ids for SwipeableItemTouchHelper -->
     <string name="tag_icon_key">tagIconKey</string>

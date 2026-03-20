@@ -776,6 +776,9 @@ class PageFragment : Fragment(), BackPressedHandler, CommunicationBridge.Communi
             if (!isAdded) {
                 return@addListener
             }
+            if (Prefs.fontFamily == getString(R.string.font_family_custom)) {
+                bridge.evaluateImmediate(JavaScriptActionHandler.injectCustomFont(requireContext()), null)
+            }
             bridge.onPcsReady()
             articleInteractionEvent?.logLoaded()
             callback()?.onPageLoadComplete()

@@ -134,7 +134,12 @@ abstract class OkHttpWebViewClient : WebViewClient() {
 
     private fun addResponseHeaders(headers: Headers): Headers {
         // add CORS header to allow requests from all domains.
-        return headers.newBuilder().set("Access-Control-Allow-Origin", "*").build()
+        // remove Content-Security-Policy to allow loading custom fonts via data: URIs
+        return headers.newBuilder()
+            .removeAll("content-security-policy")
+            .removeAll("Content-Security-Policy")
+            .set("Access-Control-Allow-Origin", "*")
+            .build()
     }
 
     companion object {

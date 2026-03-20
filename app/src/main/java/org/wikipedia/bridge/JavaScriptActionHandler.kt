@@ -197,6 +197,30 @@ object JavaScriptActionHandler {
                 "})();"
     }
 
+    fun injectCustomFont(context: Context): String {
+        val fontPath = java.io.File(context.filesDir, "custom_font.ttf")
+        return if (fontPath.exists()) {
+            try {
+                val bytes = fontPath.readBytes()
+                val base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+                org.wikipedia.util.log.L.d("Injecting custom font, base64 length: " + base64.length)
+                "(function() {" +
+                        "let style = document.createElement('style');" +
+                        "style.innerHTML = \"@font-face { font-family: 'CustomFont'; src: url('data:font/ttf;base64," + base64 + "'); } " +
+                        "body, .content, .mw-body, .mw-parser-output, p, span, li, a, h1, h2, h3, h4, h5, h6 { font-family: 'CustomFont' !important; }\";" +
+                        "document.head.appendChild(style);" +
+                        "console.log('Custom font injected successfully.');" +
+                        "})();"
+            } catch (e: Exception) {
+                org.wikipedia.util.log.L.e("Error injecting custom font", e)
+                ""
+            }
+        } else {
+            org.wikipedia.util.log.L.e("Custom font file not found: " + fontPath.absolutePath)
+            ""
+        }
+    }
+
     fun pauseAllMedia(): String {
         return "(function() {" +
                 "var elements = document.getElementsByTagName('audio');" +

@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -55,6 +56,25 @@ class ThemeChooserDialog : ExtendedBottomSheetDialogFragment() {
     private var updatingFont = false
     private var isEditing = false
 
+    private val fontPickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            try {
+                requireContext().contentResolver.openInputStream(it)?.use { inputStream ->
+                    val outFile = java.io.File(requireContext().filesDir, "custom_font.ttf")
+                    java.io.FileOutputStream(outFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                val newFontFamily = getString(R.string.font_family_custom)
+                appearanceSettingInteractionEvent.logFontThemeChange(Prefs.fontFamily, newFontFamily)
+                app.setFontFamily(newFontFamily)
+            } catch (e: Exception) {
+                org.wikipedia.util.log.L.e(e)
+                FeedbackUtil.showMessage(requireActivity(), "Failed to load customized font")
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogThemeChooserBinding.inflate(inflater, container, false)
         isEditing = requireArguments().getBoolean(EXTRA_IS_EDITING)
@@ -70,6 +90,9 @@ class ThemeChooserDialog : ExtendedBottomSheetDialogFragment() {
         binding.buttonThemeSepia.setOnClickListener(ThemeButtonListener(Theme.SEPIA))
         binding.buttonFontFamilySansSerif.setOnClickListener(FontFamilyListener())
         binding.buttonFontFamilySerif.setOnClickListener(FontFamilyListener())
+        binding.buttonFontFamilyCustom.setOnClickListener {
+            fontPickerLauncher.launch("*/*")
+        }
 
         binding.themeChooserDarkModeDimImagesSwitch.setOnCheckedChangeListener { _, b -> onToggleDimImages(b) }
         binding.themeChooserMatchSystemThemeSwitch.setOnCheckedChangeListener { _, b -> onToggleMatchSystemTheme(b) }
@@ -262,6 +285,7 @@ class ThemeChooserDialog : ExtendedBottomSheetDialogFragment() {
     private fun updateFontFamily() {
         binding.buttonFontFamilySansSerif.strokeColor = ColorStateList.valueOf(ResourceUtil.getThemedColor(requireContext(), if (Prefs.fontFamily == binding.buttonFontFamilySansSerif.tag) R.attr.progressive_color else R.attr.border_color))
         binding.buttonFontFamilySerif.strokeColor = ColorStateList.valueOf(ResourceUtil.getThemedColor(requireContext(), if (Prefs.fontFamily == binding.buttonFontFamilySerif.tag) R.attr.progressive_color else R.attr.border_color))
+        binding.buttonFontFamilyCustom.strokeColor = ColorStateList.valueOf(ResourceUtil.getThemedColor(requireContext(), if (Prefs.fontFamily == binding.buttonFontFamilyCustom.tag) R.attr.progressive_color else R.attr.border_color))
     }
 
     private fun updateThemeButtons() {
